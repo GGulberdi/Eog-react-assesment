@@ -1,34 +1,34 @@
+
+
+
+
+
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './reducer';
 import { Provider, createClient, useQuery } from 'urql';
 import { useGeolocation } from 'react-use';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import  Select from '@material-ui/core/Select';
+import  MenuItem from '@material-ui/core/MenuItem';
+import  FormControl from '@material-ui/core/FormControl';
+import  InputLabel from '@material-ui/core/InputLabel';
+
+
 import Chip from '../../components/Chip';
 import { IState } from '../../store';
+
 
 const client = createClient({
   url: 'https://react.eogresources.com/graphql',
 });
 
-const query = `
-query($latLong: WeatherQuery!) {
-  getWeatherForLocation(latLong: $latLong) {
-    description
-    locationName
-    temperatureinCelsius
-  }
+const queryMetric = `
+query{
+  getMetrics 
 }
-`;
-
-const getWeather = (state: IState) => {
-  const { temperatureinFahrenheit, description, locationName } = state.weather;
-  return {
-    temperatureinFahrenheit,
-    description,
-    locationName,
-  };
-};
+ `;
+// console.log(queryMetric)
 
 export default () => {
   return (
@@ -39,33 +39,42 @@ export default () => {
 };
 
 const Weather = () => {
-  const getLocation = useGeolocation();
-  // Default to houston
-  const latLong = {
-    latitude: getLocation.latitude || 29.7604,
-    longitude: getLocation.longitude || -95.3698,
-  };
-  const dispatch = useDispatch();
-  const { temperatureinFahrenheit, description, locationName } = useSelector(getWeather);
-
+  
   const [result] = useQuery({
-    query,
-    variables: {
-      latLong,
-    },
+    query: queryMetric,
   });
-  const { fetching, data, error } = result;
-  useEffect(() => {
-    if (error) {
-      dispatch(actions.weatherApiErrorReceived({ error: error.message }));
-      return;
-    }
-    if (!data) return;
-    const { getWeatherForLocation } = data;
-    dispatch(actions.weatherDataRecevied(getWeatherForLocation));
-  }, [dispatch, data, error]);
 
-  if (fetching) return <LinearProgress />;
+  const handleClick=()=>{
+    console.log('clicked')
+  }
 
-  return <Chip label={`Weather in ${locationName}: ${description} and ${temperatureinFahrenheit}°`} />;
+  const handleDelete=()=>{
+    console.log('deleted')
+  }
+  
+  const { data, fetching, error } = result;
+
+  if (fetching) return <p>Loading...</p>;
+  if (error) return <p>Oh no... {error.message}</p>;
+
+  return (
+    <>
+    <p></p>
+    <Chip
+        // icon={<FaceIcon />}
+        label="Clickable deletable"
+        onClick={handleClick}
+        onDelete={handleDelete}
+        variant="outlined"
+      />
+    <FormControl>
+    <InputLabel  style={{color:'white'}}>List</InputLabel>
+    <Select  style={{color:'white'}}>
+      {data.getMetrics.map((item:any, key:any)=> (
+  <MenuItem value={item}>{item}</MenuItem>
+     ))}
+    </Select>
+    </FormControl>
+</>
+  );
 };
